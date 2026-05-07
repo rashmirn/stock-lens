@@ -3,147 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Tickertape | Indian Stocks</title>
+    <title>EquityPro | Indian Market Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .tt-green { color: #00b386; }
+        .tt-bg-green { background-color: #00b386; }
+        .card { background: white; border: 1px solid #e0e3eb; border-radius: 8px; }
+        .sidebar-link.active { border-right: 4px solid #00b386; background: #f0faf7; color: #00b386; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<body class="text-slate-800">
 
-    <nav class="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-2xl font-bold text-green-600">InvestTrack <span class="text-gray-400 text-sm font-normal">India</span></h1>
-        <div class="flex items-center gap-4">
-            <input id="stockSearch" type="text" placeholder="Search (e.g. RELIANCE)" class="border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <button onclick="updateChart()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700">Analyze</button>
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-8">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                <i data-lucide="trending-up" class="text-emerald-500"></i> StockLens<span class="font-light text-slate-400">Pro</span>
+            </h1>
+            <div class="relative w-96">
+                <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400 w-4 h-4"></i>
+                <input id="globalSearch" type="text" placeholder="Search stocks (e.g. Reliance, HDFC...)" 
+                    class="w-full pl-10 pr-4 py-2 bg-slate-100 border-transparent rounded-md text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
+            </div>
+        </div>
+        <div class="flex items-center gap-6 text-sm font-medium">
+            <button onclick="showPage('market')" class="hover:text-emerald-600 transition-colors">Market</button>
+            <button onclick="showPage('portfolio')" class="hover:text-emerald-600 transition-colors">Portfolio</button>
+            <div class="h-8 w-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200">
+                <i data-lucide="user" class="w-4 h-4"></i>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="max-w-7xl mx-auto px-6 py-8 flex gap-8">
         
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border h-[500px]">
-                <div id="tradingview_widget" class="h-full"></div>
+        <div id="marketPage" class="w-full space-y-6">
+            
+            <div class="flex justify-between items-end">
+                <div>
+                    <h2 id="displayTicker" class="text-3xl font-bold text-slate-900">RELIANCE</h2>
+                    <p id="displayName" class="text-slate-500 uppercase text-xs tracking-widest font-semibold mt-1">Reliance Industries Limited</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-400 font-bold uppercase mb-1">Current Price</p>
+                    <div class="flex items-center gap-3">
+                        <span id="displayPrice" class="text-3xl font-mono font-bold">₹2,945.10</span>
+                        <span id="displayChange" class="text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded text-sm">+1.45%</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-4 bg-green-50 rounded-lg">
-                    <p class="text-sm text-gray-500 uppercase font-bold">Recommendation</p>
-                    <h3 id="recValue" class="text-2xl font-bold text-green-700">STRONG BUY</h3>
+            <div class="grid grid-cols-12 gap-6">
+                
+                <div class="col-span-8 space-y-6">
+                    <div class="card p-1 h-[450px]">
+                        <div id="tv_chart_container" class="h-full w-full"></div>
+                    </div>
+
+                    <div class="card p-6">
+                        <h3 class="font-bold text-lg mb-4">Peers Comparison</h3>
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-slate-400 border-b">
+                                <tr>
+                                    <th class="pb-3 font-semibold">Stock</th>
+                                    <th class="pb-3 font-semibold">Price</th>
+                                    <th class="pb-3 font-semibold">P/E Ratio</th>
+                                    <th class="pb-3 font-semibold">1Y Return</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr><td class="py-3 font-medium">Reliance</td><td>₹2,945</td><td>28.4</td><td class="text-emerald-600">+12.4%</td></tr>
+                                <tr><td class="py-3 font-medium text-blue-600">IOC</td><td>₹165</td><td>12.1</td><td class="text-red-600">-2.1%</td></tr>
+                                <tr><td class="py-3 font-medium text-blue-600">BPCL</td><td>₹590</td><td>15.2</td><td class="text-emerald-600">+8.4%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="p-4 bg-blue-50 rounded-lg">
-                    <p class="text-sm text-gray-500 uppercase font-bold">Trend</p>
-                    <h3 class="text-2xl font-bold text-blue-700">Bullish</h3>
-                </div>
-                <div class="p-4 bg-yellow-50 rounded-lg">
-                    <p class="text-sm text-gray-500 uppercase font-bold">Market Condition</p>
-                    <h3 class="text-2xl font-bold text-yellow-700">Healthy</h3>
+
+                <div class="col-span-4 space-y-6">
+                    
+                    <div class="card p-6 text-center">
+                        <h3 class="text-sm font-bold text-slate-500 uppercase mb-4">Investment Suggestion</h3>
+                        <div id="adviceMeter" class="inline-block px-6 py-2 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xl mb-2">
+                            STRONG BUY
+                        </div>
+                        <p class="text-xs text-slate-400 px-4">Based on RSI(14) and 200-day Moving Average signals for NSE data.</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h3 class="font-bold text-md mb-4">Investment Checklist</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <i data-lucide="check-circle" class="text-emerald-500 w-5 h-5 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-semibold">Intrinsic Value</p>
+                                    <p class="text-xs text-slate-500">Current price is less than the intrinsic value.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i data-lucide="check-circle" class="text-emerald-500 w-5 h-5 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-semibold">Returns vs FD</p>
+                                    <p class="text-xs text-slate-500">Stock has been generating better returns than Bank FD.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <i data-lucide="alert-triangle" class="text-amber-500 w-5 h-5 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-semibold">Entry Point</p>
+                                    <p class="text-xs text-slate-500">Stock is not in overbought zone, but check fundamentals.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 bg-slate-900 text-white">
+                        <h3 class="text-slate-400 text-xs font-bold uppercase mb-2">Market Cap Rank</h3>
+                        <p class="text-2xl font-bold">#1 in Energy Sector</p>
+                        <div class="mt-4 pt-4 border-t border-slate-700 flex justify-between">
+                            <div><p class="text-slate-400 text-[10px]">PE RATIO</p><p class="font-mono">26.41</p></div>
+                            <div><p class="text-slate-400 text-[10px]">DIV YIELD</p><p class="font-mono">0.34%</p></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border">
-                <h2 class="text-lg font-bold mb-4">Add to Portfolio</h2>
-                <div class="space-y-3">
-                    <input id="portSymbol" type="text" placeholder="Symbol (e.g. TCS)" class="w-full border rounded-lg px-4 py-2 text-sm">
-                    <input id="portQty" type="number" placeholder="Quantity" class="w-full border rounded-lg px-4 py-2 text-sm">
-                    <input id="portPrice" type="number" placeholder="Buy Price (Avg)" class="w-full border rounded-lg px-4 py-2 text-sm">
-                    <button onclick="addToPortfolio()" class="w-full bg-gray-900 text-white py-2 rounded-lg font-semibold hover:bg-black">Add Stock</button>
+        <div id="portfolioPage" class="w-full hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold">My Holdings</h2>
+                <button onclick="addStockPrompt()" class="tt-bg-green text-white px-4 py-2 rounded font-bold text-sm">+ ADD NEW STOCK</button>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4">
+                <div class="card p-5">
+                    <p class="text-xs text-slate-500 font-bold uppercase">Total Investment</p>
+                    <p id="totalInvested" class="text-xl font-bold mt-1">₹0.00</p>
+                </div>
+                <div class="card p-5">
+                    <p class="text-xs text-slate-500 font-bold uppercase">Current Value</p>
+                    <p id="currentValue" class="text-xl font-bold mt-1">₹0.00</p>
+                </div>
+                <div class="card p-5">
+                    <p class="text-xs text-slate-500 font-bold uppercase">Total P&L</p>
+                    <p id="totalProfit" class="text-xl font-bold mt-1 text-emerald-600">₹0.00</p>
+                </div>
+                <div class="card p-5">
+                    <p class="text-xs text-slate-500 font-bold uppercase">XIRR / Returns</p>
+                    <p id="returnPct" class="text-xl font-bold mt-1">0.00%</p>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold">Your Portfolio</h2>
-                    <span id="totalPL" class="text-sm font-bold text-green-600">+₹0.00</span>
-                </div>
-                <div id="portfolioList" class="space-y-4 max-h-[400px] overflow-y-auto">
-                    <p class="text-gray-400 text-sm italic">No stocks added yet.</p>
-                </div>
+            <div class="card overflow-hidden">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50 border-b text-slate-500">
+                        <tr>
+                            <th class="p-4">Stock Name</th>
+                            <th class="p-4">Qty</th>
+                            <th class="p-4">Avg. Price</th>
+                            <th class="p-4">LTP</th>
+                            <th class="p-4">P&L</th>
+                            <th class="p-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioBody" class="divide-y">
+                        </tbody>
+                </table>
             </div>
         </div>
-    </main>
+
+    </div>
 
     <script>
-        // Initialize Chart
-        let currentSymbol = "RELIANCE";
+        // State Management
+        let portfolio = JSON.parse(localStorage.getItem('user_portfolio')) || [];
+        
+        // Navigation
+        function showPage(pageId) {
+            document.getElementById('marketPage').classList.add('hidden');
+            document.getElementById('portfolioPage').classList.add('hidden');
+            document.getElementById(pageId + 'Page').classList.remove('hidden');
+            if(pageId === 'portfolio') renderPortfolio();
+        }
 
-        function loadChart(symbol) {
+        // TradingView Integration
+        function initChart(symbol = "RELIANCE") {
             new TradingView.widget({
                 "autosize": true,
                 "symbol": "NSE:" + symbol,
                 "interval": "D",
                 "timezone": "Asia/Kolkata",
                 "theme": "light",
-                "style": "1",
+                "style": "3", // Area chart like Tickertape
                 "locale": "in",
                 "toolbar_bg": "#f1f3f6",
                 "enable_publishing": false,
-                "hide_side_toolbar": false,
                 "allow_symbol_change": true,
-                "container_id": "tradingview_widget"
+                "container_id": "tv_chart_container"
             });
         }
 
-        function updateChart() {
-            const symbol = document.getElementById('stockSearch').value.toUpperCase();
-            if (symbol) {
-                currentSymbol = symbol;
-                loadChart(symbol);
-                // Mock Recommendation Logic
-                const recs = ["BUY", "STRONG BUY", "HOLD", "NEUTRAL"];
-                document.getElementById('recValue').innerText = recs[Math.floor(Math.random() * recs.length)];
+        // Search logic
+        document.getElementById('globalSearch').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const sym = this.value.toUpperCase();
+                document.getElementById('displayTicker').innerText = sym;
+                document.getElementById('displayName').innerText = sym + " INDUSTRIES";
+                initChart(sym);
+                showPage('market');
             }
-        }
+        });
 
         // Portfolio Logic
-        let portfolio = JSON.parse(localStorage.getItem('myPortfolio')) || [];
+        function addStockPrompt() {
+            const name = prompt("Enter Stock Symbol (e.g., RELIANCE):").toUpperCase();
+            const qty = parseFloat(prompt("Enter Quantity:"));
+            const price = parseFloat(prompt("Enter Buy Price:"));
 
-        function addToPortfolio() {
-            const sym = document.getElementById('portSymbol').value.toUpperCase();
-            const qty = parseFloat(document.getElementById('portQty').value);
-            const price = parseFloat(document.getElementById('portPrice').value);
-
-            if (sym && qty && price) {
-                portfolio.push({ sym, qty, price });
-                localStorage.setItem('myPortfolio', JSON.stringify(portfolio));
+            if(name && qty && price) {
+                portfolio.push({ name, qty, price });
+                localStorage.setItem('user_portfolio', JSON.stringify(portfolio));
                 renderPortfolio();
-                // Reset inputs
-                document.getElementById('portSymbol').value = '';
-                document.getElementById('portQty').value = '';
-                document.getElementById('portPrice').value = '';
             }
         }
 
         function renderPortfolio() {
-            const container = document.getElementById('portfolioList');
-            if (portfolio.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 text-sm italic">No stocks added yet.</p>';
-                return;
-            }
+            const tbody = document.getElementById('portfolioBody');
+            tbody.innerHTML = '';
+            let totalInv = 0;
+            let totalCur = 0;
 
-            container.innerHTML = portfolio.map((item, index) => `
-                <div class="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer" onclick="loadChart('${item.sym}')">
-                    <div>
-                        <p class="font-bold text-sm">${item.sym}</p>
-                        <p class="text-xs text-gray-500">${item.qty} Shares @ ₹${item.price}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-semibold">₹${(item.qty * item.price).toLocaleString('en-IN')}</p>
-                        <button onclick="event.stopPropagation(); removeStock(${index})" class="text-[10px] text-red-500 underline">Remove</button>
-                    </div>
-                </div>
-            `).join('');
+            portfolio.forEach((stock, index) => {
+                // In a real app, we would fetch the 'LTP' (Last Traded Price) from an API here
+                // For this UI demo, we assume LTP is 5% higher than buy price
+                const ltp = stock.price * 1.05; 
+                const pl = (ltp - stock.price) * stock.qty;
+                
+                totalInv += (stock.price * stock.qty);
+                totalCur += (ltp * stock.qty);
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-bold text-emerald-700">${stock.name}</td>
+                        <td class="p-4 font-mono">${stock.qty}</td>
+                        <td class="p-4 font-mono">₹${stock.price.toFixed(2)}</td>
+                        <td class="p-4 font-mono">₹${ltp.toFixed(2)}</td>
+                        <td class="p-4 font-semibold ${pl >=0 ? 'text-emerald-600' : 'text-red-600'}">
+                            ${pl >= 0 ? '+' : ''}₹${pl.toFixed(2)}
+                        </td>
+                        <td class="p-4 text-right">
+                            <button onclick="removeStock(${index})" class="text-slate-400 hover:text-red-500">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalInvested').innerText = "₹" + totalInv.toLocaleString('en-IN');
+            document.getElementById('currentValue').innerText = "₹" + totalCur.toLocaleString('en-IN');
+            document.getElementById('totalProfit').innerText = "₹" + (totalCur - totalInv).toLocaleString('en-IN');
+            document.getElementById('returnPct').innerText = totalInv > 0 ? ((totalCur - totalInv) / totalInv * 100).toFixed(2) + "%" : "0.00%";
+            
+            lucide.createIcons(); // Refresh icons
         }
 
         function removeStock(index) {
             portfolio.splice(index, 1);
-            localStorage.setItem('myPortfolio', JSON.stringify(portfolio));
+            localStorage.setItem('user_portfolio', JSON.stringify(portfolio));
             renderPortfolio();
         }
 
-        // Initial Load
-        loadChart(currentSymbol);
-        renderPortfolio();
+        // Initialize
+        initChart();
+        lucide.createIcons();
     </script>
 </body>
 </html>
